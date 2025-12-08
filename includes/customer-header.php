@@ -1,10 +1,10 @@
 <header class="top-header">
     <div class="section-logo">
-        <img src="default-images/logo.png" alt="JBOY Logo">
+        <img src="/jboymakiandbento/assets/images/logo.png" alt="JBOY Logo">
         <div class="section-brand-text">
             <h1>JBOY</h1>
             <p>MAKI and BENTO</p>
-            <a href="index.php">
+            <a href="/jboymakiandbento/index.php">
                 <span class="LogoLinker"></span>
             </a>
         </div>

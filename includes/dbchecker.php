@@ -2,7 +2,7 @@
     $db_server = "localhost";
     $db_user = "root";
     $db_pass = "";
-    $db_name = "";
+    $db_name = "JBoyDB";
     $conn = "";
 
     try{

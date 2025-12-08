@@ -1,9 +1,15 @@
 <?php
-    include_once($_SERVER['DOCUMENT_ROOT'] . '/website/config.php');
-
-    include_once(BASE_PATH . '/database.php');
-    include_once(BASE_PATH . '/header.html');
-    include_once(BASE_PATH . '  /nav.html');
+    // BASE PATH Maker
+    require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
+    // Database Related
+    include_once(BASE_PATH . 'includes/dbchecker.php');
+    require_once(BASE_PATH . 'includes/idgenerator.php');
+    // HTML Related - TOP
+    include_once(BASE_PATH . 'includes/customer-head.php');
+    include_once(BASE_PATH . 'includes/customer-header.php');
+    include_once(BASE_PATH . 'includes/customer-navigation.php');
+    // HTML Related - BOTTOM
+    include_once(BASE_PATH . 'includes/customer-footer.php');
 
     $menu_ramen = ["Item 1", "Item 2", "Item 3", "Item 4"];
     $sql = "INSERT INTO ";
@@ -13,21 +19,12 @@
 <html lang="en">
     <head>
         <!-- Title -->
-        <title>JBOY MAKI and BENTI Food House - HOME</title>
-        <!-- Icon -->
-        <link rel="shortcut icon" type="image/x-icon" href="default-images/favicon.png" />
-        <!-- Stylesheet -->
-        <link rel="stylesheet" href="style.css">
-        <!-- Font Giver -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Itim&display=swap" rel="stylesheet">
+        <title>Popular | JBOY MAKI and BENTI Food House</title>
     </head>
     <body>
-
         <main>
             <section class="class_greeting">
-                <img id="greet" src="greeting-images/Time-Morning.png" alt="Greetings" width="950" height="475" style="align-items: center;">
+                <img id="greet" src="assets/images/Time-Morning.png" alt="Greetings" width="950" height="475" style="align-items: center;">
             </section>
 
             <div class="section-divider"></div>
@@ -56,13 +53,13 @@
             const Image_greet = document.getElementById("greet");
 
             if (time >= 18) {
-                Image_greet.src = "greeting-images/Time-Evening.png";
+                Image_greet.src = "/jboymakiandbento/assets/images/Time-Evening.png";
             } 
             else if (time >= 13) {
-                Image_greet.src = "greeting-images/Time-Afternoon.png";
+                Image_greet.src = "/jboymakiandbento/assets/images/Time-Afternoon.png";
             } 
             else {
-                Image_greet.src = "greeting-images/Time-Morning.png";
+                Image_greet.src = "/jboymakiandbento/assets/images/Time-Morning.png";
             }
         </script>
     </body>

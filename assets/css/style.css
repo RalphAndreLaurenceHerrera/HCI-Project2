@@ -83,7 +83,13 @@
   gap: 15px;
 }
 
+.login-button {
+    margin-left: auto; 
+    margin-right: 20px;
+}
+
 .dropdown {
+  position: relative;
   display: inline-block;
 }
 
@@ -131,6 +137,7 @@
   border-radius: 10px;
 }
 
+/* Default */
 .content {
   background-color: #f2dfcf;
   min-height: calc(100vh - 120px);
@@ -188,58 +195,107 @@ body{
   border-radius: 5px;
 }
 
-/* --- Updated Layout Styles for Scrolling --- */
-
-/* Controls the side-by-side layout of Sidebar vs Main Area */
-.main-layout {
-  display: flex;
-  gap: 20px;
-  padding: 20px;
-  /* Use fixed height that fills the remaining viewport area */
-  height: calc(100vh - 140px); 
+.sidebar {
+    width: 20%; /* Takes up roughly 1/5th of the screen */
+    min-width: 150px; /* Prevents it from getting too small */
+    background-color: #EAD8C8; /* The beige/peach color from your image */
+    padding: 20px;
+    
+    /* Scroll if too many categories */
+    overflow-y: auto; 
+    
+    /* Sidebar Layout */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between category boxes */
 }
 
-/* Left Sidebar Strip */
-.sidebar-strip {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 120px;
-  flex-shrink: 0;
-  
-  /* Key change: Makes the content inside the sidebar vertically scrollable */
-  overflow-y: scroll; 
+/* 1. LAYOUT CONTAINER (Flexbox) */
+.main-body {
+    display: flex; /* This places Sidebar and Main side-by-side */
+    height: 100vh; /* Takes full viewport height */
+    font-family: Arial, sans-serif;
 }
 
-/* The Gray Background Area */
-.main-display-area {
-  background-color: #E0E0E0;
-  flex-grow: 1;
-  padding: 40px;
-  border-radius: 5px;
-  
-  /* Key change: Makes the content inside the gray area vertically scrollable */
-  overflow-y: scroll;
+/* 2. SIDEBAR STYLING */
+.sidebar {
+    width: 20%; /* Takes up roughly 1/5th of the screen */
+    min-width: 150px; /* Prevents it from getting too small */
+    background-color: #EAD8C8; /* The beige/peach color from your image */
+    padding: 20px;
+    
+    /* Scroll if too many categories */
+    overflow-y: auto; 
+    
+    /* Sidebar Layout */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between category boxes */
 }
 
-/* The 4x2 Grid inside the gray area */
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  /* Use auto-rows to allow the grid to grow infinitely */
-  grid-auto-rows: 200px; 
-  gap: 30px;
-  width: 100%;
+.category-item {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Keeps them perfect squares */
+    background-color: white;
+    border: 1px solid #ccc;
+    cursor: pointer;
 }
 
-/* --- Wireframe Box Styling (Keep the same) --- */
-.wireframe-box {
-  background-color: white;
-  border: 1px solid #999;
-  width: 100%;
-  height: 100%;
-  background: 
-    linear-gradient(to top left, transparent calc(50% - 1px), #555 calc(50% - 1px), #555 calc(50% + 1px), transparent calc(50% + 1px)),
-    linear-gradient(to top right, transparent calc(50% - 1px), #555 calc(50% - 1px), #555 calc(50% + 1px), transparent calc(50% + 1px));
-  background-color: white;
+/* 3. MAIN CONTENT STYLING */
+.food-content {
+    flex: 1; /* Takes up all remaining space (80%) */
+    background-color: #E0E0E0; /* The grey background */
+    padding: 40px; /* Inner spacing */
+    
+    /* GRID SYSTEM FOR FOOD ITEMS */
+    display: grid;
+    /* This creates 4 equal columns like your drawing */
+    grid-template-columns: repeat(4, 1fr); 
+    /* Space between grid items */
+    gap: 30px; 
+    
+    /* Scroll independently from sidebar */
+    overflow-y: auto; 
+}
+
+.food-card {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Keeps them perfect squares */
+    background-color: white;
+    border: 1px solid #999;
+}
+
+
+/* Login/Registration */
+.login-registration-container {
+    width: 80%;
+    height: 60%;
+    margin: 5% auto;
+    padding: 30px;
+    background: #E0E0E0;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    text-align: center;
+    color: black;
+}
+
+.login-registration-container h1{
+    color: black;
+}
+
+.login-registration-container input {
+    width: 80%;
+    padding: 10px;
+    margin: 5px 0;
+    color: black;
+
+}
+
+.login-registration-container button {
+    padding: 10px 20px;
+    background: #E00809;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
 }
