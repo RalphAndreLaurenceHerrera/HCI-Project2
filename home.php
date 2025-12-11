@@ -2,14 +2,13 @@
     // BASE PATH Maker
     require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
     // Database Related
-    include_once(BASE_PATH . 'includes/dbchecker.php');
-    require_once(BASE_PATH . 'includes/idgenerator.php');
+    require_once(BASE_PATH . 'includes/dbchecker.php');
     // HTML Related - TOP
-    include_once(BASE_PATH . 'includes/customer-head.php');
-    include_once(BASE_PATH . 'includes/customer-header.php');
-    include_once(BASE_PATH . 'includes/customer-navigation.php');
+    require_once(BASE_PATH . 'includes/customer/head.php');
+    require_once(BASE_PATH . 'includes/customer/header.php');
+    require_once(BASE_PATH . 'includes/customer/navigation.php');
     // HTML Related - BOTTOM
-    include_once(BASE_PATH . 'includes/customer-footer.php');
+    require_once(BASE_PATH . 'includes/customer/footer.php');
 
     $menu_ramen = ["Item 1", "Item 2", "Item 3", "Item 4"];
     $sql = "INSERT INTO ";
@@ -30,7 +29,7 @@
             <div class="section-divider"></div>
 
             <section class="section-title">
-                <h2>Foods</h2>
+                <h2>Our Foods</h2>
             </section>
 
             <section class="food-grid">

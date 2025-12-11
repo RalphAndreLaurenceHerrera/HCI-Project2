@@ -1,8 +1,16 @@
 <?php
-// Root Finder
-require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
-// Database Related
-require_once (BASE_PATH . 'includes/dbchecker.php');
+    // BASE PATH Maker
+    require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
+    // Database - Functions Related
+    require_once(BASE_PATH . 'includes/dbchecker.php');
+    require_once(BASE_PATH . 'includes/admin_auth.php');
+    require_once(BASE_PATH . 'includes/idgenerator.php');
+    // HTML Related - TOP
+    include_once(BASE_PATH . 'includes/admin-head.php');
+    include_once(BASE_PATH . 'includes/admin-header.php');
+    include_once(BASE_PATH . 'includes/admin-navigation.php');
+    // HTML Related - BOTTOM
+    include_once(BASE_PATH . 'includes/admin-footer.php');
 
 // Database Dropper
 /*Usage:

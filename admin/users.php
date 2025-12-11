@@ -1,16 +1,16 @@
 <?php
-// BASE PATH Maker
-require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
-// Database - Functions Related
-require_once(BASE_PATH . 'includes/dbchecker.php');
-require_once(BASE_PATH . 'includes/admin_auth.php');
-require_once(BASE_PATH . 'includes/idgenerator.php');
-// HTML Related - TOP
-include_once(BASE_PATH . 'includes/admin-head.php');
-include_once(BASE_PATH . 'includes/admin-header.php');
-include_once(BASE_PATH . 'includes/admin-navigation.php');
-// HTML Related - BOTTOM
-include_once(BASE_PATH . 'includes/admin-footer.php');
+    // BASE PATH Maker
+    require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
+    // Database - Functions Related
+    require_once(BASE_PATH . 'includes/dbchecker.php');
+    // require_once(BASE_PATH . 'includes/admin_auth.php');
+    require_once(BASE_PATH . 'includes/idgenerator.php');
+    // HTML Related - TOP
+    require_once(BASE_PATH . 'includes/admin/head.php');
+    require_once(BASE_PATH . 'includes/admin/header.php');
+    require_once(BASE_PATH . 'includes/admin/navigation.php');
+    // HTML Related - BOTTOM
+    require_once(BASE_PATH . 'includes/admin/footer.php');
 
 $message = '';
 
@@ -227,20 +227,11 @@ $users = $conn->query("
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="utf-8">
-        <title>Admin - Users</title>
-        <style>
-            .container { padding:20px; max-width:1100px; margin:auto; }
-            .form-row { display:flex; gap:8px; margin-bottom:8px; }
-            input[type="text"], input[type="email"], input[type="password"], select { padding:8px; width:100%; }
-            table { width:100%; border-collapse:collapse; }
-            th, td { border:1px solid #ddd; padding:8px; text-align:left; }
-            .msg { margin:10px 0; color:green; }
-            .error { color:red; }
-        </style>
+        <!-- Title -->
+        <title>Users | Admin Dashboard</title>
     </head>
     <body>
-        <main class="container">
+        <main>
             <?php if($message) echo "<p class='msg'>" . htmlspecialchars($message) . "</p>"; ?>
 
             <!-- ADD USER -->
@@ -379,9 +370,21 @@ $users = $conn->query("
                 </table>
             </section>
         </main>
+        <script>
+
+        </script>
     </body>
 </html>
-
+        <style>
+            .container { padding:20px; max-width:1100px; margin:auto; }
+            .form-row { display:flex; gap:8px; margin-bottom:8px; }
+            input[type="text"], input[type="email"], input[type="password"], select { padding:8px; width:100%; }
+            table { width:100%; border-collapse:collapse; }
+            th, td { border:1px solid #ddd; padding:8px; text-align:left; }
+            .msg { margin:10px 0; color:green; }
+            .error { color:red; }
+        </style>
+        
 <?php
     mysqli_close($conn);
 ?>

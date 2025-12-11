@@ -3,14 +3,14 @@ session_start();
     // BASE PATH Maker
     require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
     // Database Related
-    include_once(BASE_PATH . 'includes/dbchecker.php');
-    require_once(BASE_PATH . 'includes/idgenerator.php');
+    require_once(BASE_PATH . 'includes/dbchecker.php');
     // HTML Related - TOP
-    include_once(BASE_PATH . 'includes/customer-head.php');
-    include_once(BASE_PATH . 'includes/customer-header.php');
-    include_once(BASE_PATH . 'includes/customer-navigation.php');
+    require_once(BASE_PATH . 'includes/customer/head.php');
+    require_once(BASE_PATH . 'includes/customer/header.php');
+    require_once(BASE_PATH . 'includes/customer/navigation.php');
     // HTML Related - BOTTOM
-    include_once(BASE_PATH . 'includes/customer-footer.php');
+    require_once(BASE_PATH . 'includes/customer/footer.php');
+    
 $message = '';
 
 if (isset($_POST['login'])) {
@@ -35,7 +35,7 @@ if (isset($_POST['login'])) {
                 header("Location: /jboymakiandbento/admin/admin-dashboard.php");
                 exit();
             } else {
-                header("Location: /home.php");
+                header("Location: /jboymakiandbento/home.php");
                 exit();
             }
         } else {

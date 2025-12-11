@@ -1,0 +1,42 @@
+*{
+    box-sizing: border-box;
+    color: white;
+    font-family: 'Itim';
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    display: grid;
+    grid-template-columns: 225px 1fr;
+    grid-template-rows: 100vh;
+}
+
+aside{
+    background-color: tomato;
+    display: grid;
+    grid-auto-rows: 5%;
+    grid-auto-flow: row;
+    justify-items: center;
+    gap: 100px;
+}
+
+.section-title {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    margin-top: 10%;
+    gap: 1em;
+    align-items: center;
+}
+
+.section-title img{
+    height: 56px;
+}
+
+.section-title-text{
+    font-size: 1em;
+}
+
+main{
+    background-color: cornflowerblue;
+}

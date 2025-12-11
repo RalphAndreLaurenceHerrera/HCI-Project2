@@ -1,23 +1,24 @@
 <?php
-// BASE PATH Maker
-require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
-// Database - Functions Related
-require_once(BASE_PATH . 'includes/dbchecker.php');
-require_once(BASE_PATH . 'includes/admin_auth.php');
-require_once(BASE_PATH . 'includes/idgenerator.php');
-// HTML Related - TOP/BOTTOM
-include_once(BASE_PATH . 'includes/admin-head.php');
-include_once(BASE_PATH . 'includes/admin-header.php');
-include_once(BASE_PATH . 'includes/admin-navigation.php');
-include_once(BASE_PATH . 'includes/admin-footer.php');
+    // BASE PATH Maker
+    require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
+    // Database - Functions Related
+    require_once(BASE_PATH . 'includes/dbchecker.php');
+    require_once(BASE_PATH . 'includes/admin_auth.php');
+    require_once(BASE_PATH . 'includes/idgenerator.php');
+    // HTML Related - TOP
+    require_once(BASE_PATH . 'includes/admin/head.php');
+    require_once(BASE_PATH . 'includes/admin/header.php');
+    require_once(BASE_PATH . 'includes/admin/navigation.php');
+    // HTML Related - BOTTOM
+    require_once(BASE_PATH . 'includes/admin/footer.php');
 
-$message = '';
-$editingItem = false;
-$editItem = null;
-$editingSub = false;
-$editSub = null;
-$editingCat = false;
-$editCat = null;
+    $message = '';
+    $editingItem = false;
+    $editItem = null;
+    $editingSub = false;
+    $editSub = null;
+    $editingCat = false;
+    $editCat = null;
 
 // ---------- HANDLE ADD SUBCATEGORY ----------
 if (isset($_POST['add_subcategory'])) {

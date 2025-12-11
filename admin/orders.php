@@ -1,264 +1,246 @@
 <?php
-require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
-require_once(BASE_PATH . 'includes/dbchecker.php');
-require_once(BASE_PATH . 'includes/admin_auth.php');
-require_once(BASE_PATH . 'includes/idgenerator.php');
-include_once(BASE_PATH . 'includes/admin-head.php');
-include_once(BASE_PATH . 'includes/admin-header.php');
-include_once(BASE_PATH . 'includes/admin-navigation.php');
-include_once(BASE_PATH . 'includes/admin-footer.php');
-
+    // BASE PATH Maker
+    require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
+    // Database - Functions Related
+    require_once(BASE_PATH . 'includes/dbchecker.php');
+    require_once(BASE_PATH . 'includes/admin_auth.php');
+    require_once(BASE_PATH . 'includes/idgenerator.php');
+    // HTML Related - TOP
+    require_once(BASE_PATH . 'includes/admin/head.php');
+    require_once(BASE_PATH . 'includes/admin/header.php');
+    require_once(BASE_PATH . 'includes/admin/navigation.php');
+    // HTML Related - BOTTOM
+    require_once(BASE_PATH . 'includes/admin/footer.php');
 $message = '';
 
-// -------------------- Handle Create/Edit Order --------------------
-if (isset($_POST['save_order'])) {
-    $isEdit = !empty($_POST['orderID']);
-    $orderID = $isEdit ? $_POST['orderID'] : generateOrderID($conn);
+// ---------------- ORDERS CRUD ----------------
+
+// ---------- HANDLE ADD ORDER ----------
+if(isset($_POST['add_order'])){
     $userID = $_POST['userID'];
-    $deliveryFee = floatval($_POST['deliveryFee']);
     $deliveryAddress = trim($_POST['deliveryAddress']);
-    $totalAmount = 0;
-
-    $items = $_POST['items']; // array of ['itemID'=>..,'qty'=>..,'price'=>..]
-
-    foreach ($items as $it) {
-        $totalAmount += $it['qty'] * $it['price'];
-    }
-    $totalAmount += $deliveryFee;
-
-    if ($isEdit) {
-        // Update main order
-        $stmt = $conn->prepare("UPDATE Orders SET userID=?, totalAmount=?, deliveryFee=?, deliveryAddress=? WHERE orderID=?");
-        $stmt->bind_param("sddss", $userID, $totalAmount, $deliveryFee, $deliveryAddress, $orderID);
-        $stmt->execute();
-        // Clear old items
-        $stmtDel = $conn->prepare("DELETE FROM OrderItem WHERE orderID=?");
-        $stmtDel->bind_param("s",$orderID);
-        $stmtDel->execute();
+    $deliveryFee = floatval($_POST['deliveryFee']);
+    
+    // items & quantities
+    $items = $_POST['itemID'] ?? [];
+    $quantities = $_POST['quantity'] ?? [];
+    
+    if(empty($userID) || empty($items)){
+        $message = "❌ Please select a user and at least one item.";
     } else {
-        // Create new order
-        $stmt = $conn->prepare("INSERT INTO Orders(orderID,userID,totalAmount,deliveryFee,deliveryAddress) VALUES(?,?,?,?,?)");
-        $stmt->bind_param("sddds",$orderID,$userID,$totalAmount,$deliveryFee,$deliveryAddress);
+        // Calculate total amount
+        $total = 0;
+        $orderItems = [];
+        for($i=0;$i<count($items);$i++){
+            $itemID = $items[$i];
+            $qty = max(1,intval($quantities[$i]));
+            // Fetch item price
+            $stmt = $conn->prepare("SELECT itemPrice FROM Items WHERE itemID=?");
+            $stmt->bind_param("s",$itemID);
+            $stmt->execute();
+            $price = $stmt->get_result()->fetch_assoc()['itemPrice'];
+            $total += $price * $qty;
+            $orderItems[] = ['itemID'=>$itemID,'qty'=>$qty,'price'=>$price];
+        }
+        $total += $deliveryFee;
+
+        // Generate orderID
+        $orderID = generateOrderID($conn);
+
+        // Insert into Orders
+        $stmt = $conn->prepare("INSERT INTO Orders (orderID,userID,totalAmount,deliveryFee,deliveryAddress) VALUES (?,?,?,?,?)");
+        $stmt->bind_param("ssdds",$orderID,$userID,$total,$deliveryFee,$deliveryAddress);
         $stmt->execute();
-    }
 
-    // Insert order items
-    $stmtItem = $conn->prepare("INSERT INTO OrderItem(orderItemID, orderID, itemID, quantity, itemPriceAtOrder) VALUES(?,?,?,?,?)");
-    foreach ($items as $it) {
-        $stmtItem->bind_param("sssid", generateOrderID($conn), $orderID, $it['itemID'], $it['qty'], $it['price']);
-        $stmtItem->execute();
-    }
+        // Insert each item into OrderItem
+        foreach($orderItems as $oi){
+            $orderItemID = generateOrderItemID($conn);
+            $stmt2 = $conn->prepare("INSERT INTO OrderItem (orderItemID,orderID,itemID,quantity,itemPriceAtOrder) VALUES (?,?,?,?,?)");
+            $stmt2->bind_param("sssdd",$orderItemID,$orderID,$oi['itemID'],$oi['qty'],$oi['price']);
+            $stmt2->execute();
+        }
 
-    $message = $isEdit ? "✅ Order $orderID updated." : "✅ Order $orderID created.";
+        $message = "✅ Order added successfully: ".$orderID;
+    }
 }
 
-// -------------------- Fetch Data --------------------
-$users = $conn->query("SELECT * FROM Users ORDER BY firstName");
-$categories = $conn->query("SELECT * FROM Category ORDER BY categoryName");
-$itemsData = $conn->query("SELECT * FROM Items ORDER BY itemName");
+// Fetch users for dropdown
+$usersList = $conn->query("SELECT userID, firstName, lastName FROM Users ORDER BY firstName ASC");
 
-// Fetch orders
+// Fetch items for dropdown
+$itemsList = $conn->query("SELECT itemID, itemName, itemPrice FROM Items ORDER BY itemName ASC");
+
+
+// Delete Order
+if(isset($_GET['delete_order'])){
+    $delID = $_GET['delete_order'];
+    $stmt = $conn->prepare("DELETE FROM Orders WHERE orderID=?");
+    $stmt->bind_param("s", $delID);
+    $stmt->execute();
+    $message = "✅ Order deleted successfully.";
+}
+
+// Update Order Status
+if(isset($_POST['update_order'])){
+    $orderID = $_POST['orderID'];
+    $status = $_POST['orderStatus'];
+    $stmt = $conn->prepare("UPDATE Orders SET orderStatus=? WHERE orderID=?");
+    $stmt->bind_param("ss", $status, $orderID);
+    $stmt->execute();
+    $message = "✅ Order status updated successfully.";
+}
+
+// Fetch orders with user info
 $orders = $conn->query("
-    SELECT o.*, u.firstName, u.lastName
+    SELECT 
+        o.orderID,
+        o.userID,
+        u.firstName,
+        u.lastName,
+        o.totalAmount,
+        o.deliveryFee,
+        o.orderStatus,
+        o.deliveryAddress
     FROM Orders o
-    LEFT JOIN Users u ON o.userID = u.userID
+    LEFT JOIN Users u ON u.userID = o.userID
     ORDER BY o.orderedTime DESC
 ");
 
-// Fetch payments
-$payments = $conn->query("
-    SELECT p.*, u.firstName, u.lastName, o.orderID 
-    FROM Payments p 
-    LEFT JOIN Orders o ON p.orderID = o.orderID 
-    LEFT JOIN Users u ON o.userID = u.userID
-    ORDER BY p.paymentID DESC
-");
-
-// Fetch reviews
-$reviews = $conn->query("
-    SELECT r.*, u.firstName, u.lastName
-    FROM Reviews r
-    LEFT JOIN Users u ON r.userID = u.userID
-    ORDER BY r.reviewID DESC
-");
-
-// Helper function
-function fetchOrderItems($conn, $orderID){
-    $stmt = $conn->prepare("SELECT oi.*, i.itemName FROM OrderItem oi LEFT JOIN Items i ON oi.itemID=i.itemID WHERE oi.orderID=?");
-    $stmt->bind_param("s",$orderID);
-    $stmt->execute();
-    return $stmt->get_result();
+// Fetch reviews mapped by orderID
+$reviewsResult = $conn->query("SELECT * FROM Reviews ORDER BY reviewID ASC");
+$reviewsByOrder = [];
+while($r = $reviewsResult->fetch_assoc()){
+    $reviewsByOrder[$r['orderID']][] = $r;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Admin — Orders Management</title>
+<title>Admin - Orders & Reviews</title>
 <style>
-.container{display:flex;gap:16px;align-items:flex-start;max-width:1200px;margin:18px auto;padding:12px;}
-.left{flex:1.6}.right{flex:1;display:flex;flex-direction:column;gap:16px;}
-.card{background:#fff;border:1px solid #eee;border-radius:6px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.03);}
-table{width:100%;border-collapse:collapse;font-size:0.95rem;}
-th,td{border:1px solid #eee;padding:6px;text-align:left;vertical-align:top;}
-th{background:#fafafa;}
-.inline-form{display:inline-block;margin:0;}
-.small{font-size:0.85rem;color:#666;}
-.toggle-btn{cursor:pointer;color:#0073e6;text-decoration:underline;background:none;border:none;padding:0;font-size:0.95rem;}
-.order-items{background:#f8f8f9;padding:8px;border-radius:4px;margin-top:8px;}
-.add-item-row{margin:4px 0;display:flex;gap:4px;}
-.add-item-row input, .add-item-row select{flex:1;padding:2px;}
+.container { padding:20px; max-width:1200px; margin:auto; display:flex; gap:20px; }
+.orders, .reviews { flex:1; }
+table { width:100%; border-collapse:collapse; }
+th, td { border:1px solid #ddd; padding:8px; text-align:left; }
+.msg { margin:10px 0; color:green; }
+form.inline { display:inline; }
+select { padding:4px; }
 </style>
 </head>
 <body>
 <main class="container">
 
-<div class="left card">
-<h2>Create / Edit Order</h2>
-<?php if($message) echo "<p style='color:green;'>".htmlspecialchars($message)."</p>"; ?>
-<form method="post" id="orderForm">
-<input type="hidden" name="orderID" id="orderID">
-<label>User:</label>
-<select name="userID" required>
-<option value="">Select User</option>
-<?php while($u=$users->fetch_assoc()): ?>
-<option value="<?= $u['userID'] ?>"><?= htmlspecialchars($u['firstName'].' '.$u['lastName']) ?></option>
-<?php endwhile; ?>
-</select>
-<br><label>Delivery Fee:</label>
-<input type="number" step="0.01" name="deliveryFee" value="0" required>
-<br><label>Delivery Address:</label>
-<textarea name="deliveryAddress" required></textarea>
-<br><label>Items:</label>
-<div id="itemsContainer"></div>
-<button type="button" id="addItemBtn">Add Item</button>
-<br><br>
-<button type="submit" name="save_order">Save Order</button>
+<div class="orders">
+    <?php if($message) echo "<p class='msg'>".htmlspecialchars($message)."</p>"; ?>
+<section>
+<h2>Add New Order</h2>
+<form method="post" style="margin-bottom:20px;">
+    <div class="form-row">
+        <select name="userID" required>
+            <option value="">Select User</option>
+            <?php while($u=$usersList->fetch_assoc()): ?>
+                <option value="<?= $u['userID'] ?>"><?= htmlspecialchars($u['firstName'].' '.$u['lastName']) ?></option>
+            <?php endwhile; ?>
+        </select>
+        <input type="text" name="deliveryAddress" placeholder="Delivery Address" required>
+        <input type="number" name="deliveryFee" placeholder="Delivery Fee" step="0.01" value="0" required>
+    </div>
+    <div id="itemsContainer">
+        <div class="form-row">
+            <select name="itemID[]" required>
+                <option value="">Select Item</option>
+                <?php
+                mysqli_data_seek($itemsList,0); // reset pointer
+                while($it=$itemsList->fetch_assoc()): ?>
+                    <option value="<?= $it['itemID'] ?>"><?= htmlspecialchars($it['itemName']).' - '.$it['itemPrice'] ?></option>
+                <?php endwhile; ?>
+            </select>
+            <input type="number" name="quantity[]" value="1" min="1" required>
+        </div>
+    </div>
+    <button type="button" onclick="addItemRow()">+ Add Another Item</button>
+    <div style="margin-top:8px;">
+        <button type="submit" name="add_order">Add Order</button>
+    </div>
 </form>
+</section>
 
-<h2>Existing Orders</h2>
-<table>
-<tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Address</th><th>Items</th></tr>
-<?php while($o=$orders->fetch_assoc()):
-$orderID = $o['orderID'];
-$itemsRes = fetchOrderItems($conn,$orderID);
-?>
-<tr>
-<td><?= htmlspecialchars($orderID) ?></td>
-<td><?= htmlspecialchars($o['firstName'].' '.$o['lastName']) ?></td>
-<td>₱<?= number_format($o['totalAmount'],2) ?></td>
-<td>
-<form method="post" class="inline-form">
-<input type="hidden" name="orderID" value="<?= htmlspecialchars($orderID) ?>">
-<select name="orderStatus">
-<?php
-$statuses=['placed','confirmed','preparing','out-for-delivery','delivered','cancelled'];
-foreach($statuses as $s){
-$sel=($o['orderStatus']==$s)?'selected':'';
-echo "<option value=\"$s\" $sel>".htmlspecialchars($s)."</option>";
+<script>
+function addItemRow(){
+    const container = document.getElementById('itemsContainer');
+    const row = container.children[0].cloneNode(true);
+    row.querySelectorAll('input').forEach(i=>i.value=1);
+    row.querySelector('select').selectedIndex = 0;
+    container.appendChild(row);
 }
-?>
-</select>
-<button type="submit" name="update_order_status">Save</button>
-</form>
-</td>
-<td><?= nl2br(htmlspecialchars($o['deliveryAddress'])) ?></td>
-<td><button class="toggle-btn" data-target="#items-<?= htmlspecialchars($orderID) ?>">Show</button></td>
-</tr>
-<tr id="items-<?= htmlspecialchars($orderID) ?>" style="display:none;">
-<td colspan="6">
-<table>
-<tr><th>Item</th><th>Qty</th><th>Price</th></tr>
-<?php while($it=$itemsRes->fetch_assoc()): ?>
-<tr>
-<td><?= htmlspecialchars($it['itemName']) ?></td>
-<td><?= (int)$it['quantity'] ?></td>
-<td>₱<?= number_format($it['itemPriceAtOrder'],2) ?></td>
-</tr>
-<?php endwhile; ?>
-</table>
-</td>
-</tr>
-<?php endwhile; ?>
-</table>
+</script>
+    <h2>All Orders</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>User</th>
+                <th>Total Amount</th>
+                <th>Delivery Fee</th>
+                <th>Status</th>
+                <th>Delivery Address</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php while($o = $orders->fetch_assoc()): ?>
+            <tr>
+                <td><?= htmlspecialchars($o['orderID']) ?></td>
+                <td><?= htmlspecialchars($o['firstName'].' '.$o['lastName']) ?></td>
+                <td><?= htmlspecialchars($o['totalAmount']) ?></td>
+                <td><?= htmlspecialchars($o['deliveryFee']) ?></td>
+                <td>
+                    <form method="post" class="inline">
+                        <input type="hidden" name="orderID" value="<?= htmlspecialchars($o['orderID']) ?>">
+                        <select name="orderStatus">
+                            <?php
+                            $statuses = ['placed','confirmed','preparing','out-for-delivery','delivered','cancelled'];
+                            foreach($statuses as $s){
+                                $sel = $o['orderStatus']==$s ? 'selected' : '';
+                                echo "<option value='$s' $sel>".ucfirst($s)."</option>";
+                            }
+                            ?>
+                        </select>
+                        <button type="submit" name="update_order">Save</button>
+                    </form>
+                </td>
+                <td><?= htmlspecialchars($o['deliveryAddress']) ?></td>
+                <td>
+                    <a href="?delete_order=<?= $o['orderID'] ?>" onclick="return confirm('Delete this order?')">Delete</a> |
+                    <a href="#reviews_<?= $o['orderID'] ?>">View Reviews</a>
+                </td>
+            </tr>
+        <?php endwhile; ?>
+        </tbody>
+    </table>
 </div>
 
-<div class="right">
-<div class="card" style="max-height:48vh; overflow:auto;">
-<h3>Payments</h3>
-<table>
-<tr><th>ID</th><th>Order</th><th>User</th><th>Method</th><th>Ref</th><th>Status</th><th>Action</th></tr>
-<?php while($p=$payments->fetch_assoc()): ?>
-<tr>
-<td><?= htmlspecialchars($p['paymentID']) ?></td>
-<td><?= htmlspecialchars($p['orderID']) ?></td>
-<td><?= htmlspecialchars($p['firstName'].' '.$p['lastName']) ?></td>
-<td><?= htmlspecialchars($p['paymentMethod']) ?></td>
-<td><?= htmlspecialchars($p['transactionReference'] ?? '—') ?></td>
-<td><?= htmlspecialchars($p['paymentStatus'] ?? '—') ?></td>
-<td>
-<form method="post">
-<input type="hidden" name="paymentID" value="<?= htmlspecialchars($p['paymentID']) ?>">
-<select name="paymentStatus">
-<?php $pst=['pending','success','failed']; foreach($pst as $s){$sel=($p['paymentStatus']==$s)?'selected':''; echo "<option value=\"$s\" $sel>".htmlspecialchars($s)."</option>";} ?>
-</select>
-<button type="submit" name="update_payment_status">Save</button>
-</form>
-</td>
-</tr>
-<?php endwhile; ?>
-</table>
-</div>
-
-<div class="card" style="max-height:48vh; overflow:auto;">
-<h3>Reviews</h3>
-<table>
-<tr><th>ID</th><th>Order</th><th>User</th><th>Rating</th><th>Comment</th></tr>
-<?php while($r=$reviews->fetch_assoc()): ?>
-<tr>
-<td><?= htmlspecialchars($r['reviewID']) ?></td>
-<td><?= htmlspecialchars($r['orderID']) ?></td>
-<td><?= htmlspecialchars($r['firstName'].' '.$r['lastName']) ?></td>
-<td><?= (int)$r['rating'] ?>/5</td>
-<td><?= nl2br(htmlspecialchars($r['comment'] ?? '—')) ?></td>
-</tr>
-<?php endwhile; ?>
-</table>
-</div>
+<div class="reviews">
+    <h2>Order Reviews / Feedback</h2>
+    <?php foreach($reviewsByOrder as $orderID => $revList): ?>
+        <div id="reviews_<?= $orderID ?>" style="border:1px solid #ccc; padding:10px; margin-bottom:12px;">
+            <h4>Order: <?= htmlspecialchars($orderID) ?></h4>
+            <?php foreach($revList as $rev): ?>
+                <p>
+                    <strong>User:</strong> <?= htmlspecialchars($rev['userID']) ?><br>
+                    <strong>Rating:</strong> <?= htmlspecialchars($rev['rating']) ?>/5<br>
+                    <strong>Comment:</strong> <?= htmlspecialchars($rev['comment']) ?>
+                </p>
+                <hr>
+            <?php endforeach; ?>
+        </div>
+    <?php endforeach; ?>
 </div>
 
 </main>
-<script>
-document.querySelectorAll('.toggle-btn').forEach(btn=>{
-btn.addEventListener('click',function(){
-const id=this.getAttribute('data-target');
-const el=document.querySelector(id);
-if(!el)return;
-el.style.display=(el.style.display==='none' || el.style.display==='')?'table-row':'none';
-this.textContent=(el.style.display==='table-row')?'Hide':'Show';
-});
-});
-
-const itemsContainer = document.getElementById('itemsContainer');
-const itemsData = <?php
-$arr=[];
-while($it=$itemsData->fetch_assoc()){
-$arr[]=$it;
-}
-echo json_encode($arr);
-?>;
-
-document.getElementById('addItemBtn').addEventListener('click',function(){
-const row = document.createElement('div'); row.className='add-item-row';
-const sel = document.createElement('select'); sel.name='items[][itemID]'; sel.required=true;
-itemsData.forEach(it=>{const o=document.createElement('option');o.value=it.itemID;o.textContent=it.itemName+' ₱'+parseFloat(it.itemPrice).toFixed(2); sel.appendChild(o);});
-const qty = document.createElement('input'); qty.type='number'; qty.name='items[][qty]'; qty.value=1; qty.min=1; qty.required=true;
-const price = document.createElement('input'); price.type='number'; price.name='items[][price]'; price.step='0.01'; price.value=0; price.required=true;
-const rm = document.createElement('button'); rm.type='button'; rm.textContent='Remove'; rm.addEventListener('click',()=>row.remove());
-row.appendChild(sel); row.appendChild(qty); row.appendChild(price); row.appendChild(rm);
-itemsContainer.appendChild(row);
-});
-</script>
 </body>
 </html>
+
 <?php mysqli_close($conn); ?>

@@ -44,6 +44,11 @@ function generateSubCategoryID($conn) {
 function generateOrderID($conn) {
     return generateAutoID($conn, 'Orders', 'orderID', 'O', 5);
 }
+/*  ORDER ITEM ID
+    Prefix: OD   */
+function generateOrderItemID($conn) {
+    return generateAutoID($conn, 'OrderItem', 'orderItemID', 'OD', 5);
+}
 /*  PAYMENT ID
     Prefix: P   */
 function generatePaymentID($conn) {
@@ -53,6 +58,11 @@ function generatePaymentID($conn) {
     Prefix: R   */
 function generateReviewID($conn) {
     return generateAutoID($conn, 'Reviews', 'reviewID', 'R', 5);
+}
+/*  Notices ID
+    Prefix: N   */
+function generateNoticeID($conn) {
+    return generateAutoID($conn, 'Notices', 'noticeID', 'R', 5);
 }
 //       Generic Auto-ID Generator        //
 function generateAutoID($conn, $table, $column, $prefix, $padLength = 5) {

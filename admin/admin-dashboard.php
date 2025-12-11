@@ -6,11 +6,12 @@
     require_once(BASE_PATH . 'includes/admin_auth.php');
     require_once(BASE_PATH . 'includes/idgenerator.php');
     // HTML Related - TOP
-    include_once(BASE_PATH . 'includes/admin-head.php');
-    include_once(BASE_PATH . 'includes/admin-header.php');
-    include_once(BASE_PATH . 'includes/admin-navigation.php');
+    require_once(BASE_PATH . 'includes/admin/head.php');
+    require_once(BASE_PATH . 'includes/admin/header.php');
+    require_once(BASE_PATH . 'includes/admin/navigation.php');
     // HTML Related - BOTTOM
-    include_once(BASE_PATH . 'includes/admin-footer.php');
+    require_once(BASE_PATH . 'includes/admin/footer.php');
+    
 // Basic Analytics
 $totalUsers = $conn->query("SELECT COUNT(*) AS total FROM Users")->fetch_assoc()['total'];
 $totalItems = $conn->query("SELECT COUNT(*) AS total FROM Items")->fetch_assoc()['total'];
@@ -32,7 +33,7 @@ if ($searchQuery) {
             $stmt->bind_param("sss", $param, $param, $param);
             break;
         case 'items':
-            $stmt = $conn->prepare("SELECT i.*, c.categoryName FROM Items i LEFT JOIN Category c ON i.categoryID=c.categoryID WHERE i.itemName LIKE ? ORDER BY i.itemName");
+            $stmt = $conn->prepare("SELECT Items.*, SubCategory.subCategoryName FROM Items LEFT JOIN SubCategory ON Items.subCategoryID=SubCategory.subCategoryID WHERE Items.itemName LIKE ? ORDER BY Items.itemName");
             $stmt->bind_param("s", $param);
             break;
         case 'categories':
@@ -40,7 +41,7 @@ if ($searchQuery) {
             $stmt->bind_param("s", $param);
             break;
         case 'orders':
-            $stmt = $conn->prepare("SELECT o.*, u.firstName, u.lastName FROM Orders o LEFT JOIN Users u ON o.userID=u.userID WHERE o.orderID LIKE ? OR u.firstName LIKE ? OR u.lastName LIKE ? ORDER BY o.orderedTime DESC");
+            $stmt = $conn->prepare("SELECT Orders.*, Users.firstName, Users.lastName FROM Orders LEFT JOIN Users ON Orders.userID=Users.userID WHERE Orders.orderID LIKE ? OR Users.firstName LIKE ? OR Users.lastName LIKE ? ORDER BY Orders.orderedTime DESC");
             $stmt->bind_param("sss", $param, $param, $param);
             break;
     }

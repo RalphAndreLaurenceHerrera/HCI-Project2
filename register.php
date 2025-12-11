@@ -1,16 +1,17 @@
 <?php
-session_start();
+    session_start();
+    
     // BASE PATH Maker
     require_once($_SERVER['DOCUMENT_ROOT'] . '/jboymakiandbento/includes/rootfinder.php');
     // Database Related
-    include_once(BASE_PATH . 'includes/dbchecker.php');
+    require_once(BASE_PATH . 'includes/dbchecker.php');
     require_once(BASE_PATH . 'includes/idgenerator.php');
     // HTML Related - TOP
-    include_once(BASE_PATH . 'includes/customer-head.php');
-    include_once(BASE_PATH . 'includes/customer-header.php');
-    include_once(BASE_PATH . 'includes/customer-navigation.php');
+    require_once(BASE_PATH . 'includes/customer/head.php');
+    require_once(BASE_PATH . 'includes/customer/header.php');
+    require_once(BASE_PATH . 'includes/customer/navigation.php');
     // HTML Related - BOTTOM
-    include_once(BASE_PATH . 'includes/customer-footer.php');
+    require_once(BASE_PATH . 'includes/customer/footer.php');
 
 $message = '';
 
@@ -70,7 +71,7 @@ if (isset($_POST['register'])) {
             }
 
             $message = "✅ Registration successful! Your User ID: $userID";
-            header("Refresh:2; url=/login.php");
+            header("Refresh:2; url=/jboymakiandbento/login.php");
             exit();
         }
     }
@@ -107,7 +108,7 @@ if (isset($_POST['register'])) {
 
                     <button type="submit" name="register">Register</button>
                 </form>
-                <p>Already have an account? <a href="/login.php">Login here</a></p>
+                <p>Already have an account? <a href="/jboymakiandbento/login.php">Login here</a></p>
             </div>
         </main>
         <script>
